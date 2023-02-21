@@ -1,5 +1,6 @@
 package com.txznet.carservicesampel.binder
 
+import android.os.RemoteCallbackList
 import com.txznet.sdk.HvacCallback
 import com.txznet.sdk.HvacInterface
 import com.txznet.sdk.util.CLASS_TAG
@@ -10,7 +11,7 @@ import com.txznet.sdk.util.logV
  * Description:
  */
 class HvacBinder : HvacInterface.Stub() {
-    private var hvacCallback: HvacCallback? = null
+    private var hvacCallbacks = RemoteCallbackList<HvacCallback>()
     private var mHvacTemp = 18.0
 
     private fun getHvacTemp(): Double {
@@ -24,21 +25,26 @@ class HvacBinder : HvacInterface.Stub() {
     override fun setTemperature(temperature: Int) {
         logV(CLASS_TAG, "setTemperature: $temperature")
         setHvacTemp(temperature.toDouble())
-        hvacCallback?.onTemperatureChanged(getHvacTemp())
+        requestTemperature()
     }
 
     override fun requestTemperature() {
         logV(CLASS_TAG, "requestTemperature")
-        hvacCallback?.onTemperatureChanged(getHvacTemp())
+        val count = hvacCallbacks.beginBroadcast()
+        for (i in 0 until count) {
+            val hvacCallback = hvacCallbacks.getBroadcastItem(i)
+            hvacCallback.onTemperatureChanged(getHvacTemp())
+        }
+        hvacCallbacks.finishBroadcast()
     }
 
-    override fun registerCallback(callback: HvacCallback?): Boolean {
-        hvacCallback = callback
-        return true
+    override fun registerCallback(callback: HvacCallback): Boolean {
+        logV(CLASS_TAG, "registerCallback")
+        return hvacCallbacks.register(callback)
     }
 
-    override fun unregisterCallback(callback: HvacCallback?): Boolean {
-        hvacCallback = null
-        return true
+    override fun unregisterCallback(callback: HvacCallback): Boolean {
+        logV(CLASS_TAG, "unregisterCallback")
+        return hvacCallbacks.unregister(callback)
     }
 }

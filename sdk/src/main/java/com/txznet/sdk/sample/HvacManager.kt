@@ -10,7 +10,7 @@ import com.txznet.sdk.util.logV
 
 /**
  * Created by Rick on 2023-02-03  17:10.
- * Description:
+ * Description: 示例
  */
 class HvacManager : BaseConnectManager<HvacInterface>(), HvacInterface {
     companion object {
@@ -21,7 +21,7 @@ class HvacManager : BaseConnectManager<HvacInterface>(), HvacInterface {
         val instant by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { HvacManager() }
     }
 
-    private val mCallbacks: ArrayList<HvacCallback> = arrayListOf()
+    private val mCallbacks = mutableListOf<HvacCallback>()
 
     //Dispatch Callbacks
     private val mSampleDispatchCallback: HvacCallback = object : HvacCallback.Stub() {
@@ -41,6 +41,16 @@ class HvacManager : BaseConnectManager<HvacInterface>(), HvacInterface {
 
     override fun asInterface(service: IBinder?): HvacInterface {
         return HvacInterface.Stub.asInterface(service)
+    }
+
+    override fun onBindSuccess() {
+        logV(TAG, "[onBindSuccess]")
+        getProxy().registerCallback(mSampleDispatchCallback)
+    }
+
+    override fun onBinderDied() {
+        logV(TAG, "[onBinderDied]")
+        getProxy().unregisterCallback(mSampleDispatchCallback)
     }
 
     /******************/
@@ -68,13 +78,13 @@ class HvacManager : BaseConnectManager<HvacInterface>(), HvacInterface {
                     mCallbacks.remove(callback)
                     mCallbacks.add(callback)
                 }
-                result
+                return@exec result
             } else {
                 getTaskQueue().offer {
                     logV(TAG, "[registerCallback] offer")
                     registerCallback(callback)
                 }
-                false
+                return@exec false
             }
         }
     }
@@ -83,13 +93,12 @@ class HvacManager : BaseConnectManager<HvacInterface>(), HvacInterface {
         logV(TAG, "[unregisterCallback]")
         return RemoteHelper.exec {
             if (isServiceConnected(true)) {
-                val result = mCallbacks.remove(callback)
-                result
+                return@exec mCallbacks.remove(callback)
             } else {
                 getTaskQueue().offer {
                     unregisterCallback(callback)
                 }
-                false
+                return@exec false
             }
         }
     }

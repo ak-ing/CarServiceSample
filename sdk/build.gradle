@@ -42,7 +42,7 @@ dependencies {
 def zipFile = file('build/intermediates/aar_main_jar/release/classes.jar')
 task makeJar(type: Jar) {
     from zipTree(zipFile)
-    archiveBaseName =  "sdk"
+    archiveBaseName = "sdk"
     destinationDirectory = file("build/outputs/")
     manifest {
         attributes(

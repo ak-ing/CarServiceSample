@@ -29,7 +29,7 @@ abstract class BaseConnectManager<T : IInterface> {
     private val mChildThread: Handler
     private val mMainThread: Handler
     private val mTaskQueue = LinkedBlockingQueue<Runnable>()
-    private val mBindServiceTask = this::bindService
+    private val mBindServiceTask = ::bindService
     private var mRetryTimeMill: Long = DEFAULT_RETRY_TIME
     private val mServiceConnection: ServiceConnection
 
@@ -48,6 +48,7 @@ abstract class BaseConnectManager<T : IInterface> {
                 logV(TAG, "[onServiceConnected]")
                 mProxy = asInterface(service)
                 RemoteHelper.tryExec { service?.linkToDeath(mDeathRecipient, 0) }
+                onBindSuccess()
                 mServiceListener?.onServiceConnected()
                 handlerTask()
                 mChildThread.removeCallbacks(mBindServiceTask)
@@ -65,6 +66,7 @@ abstract class BaseConnectManager<T : IInterface> {
     private val mDeathRecipient = object : IBinder.DeathRecipient {
         override fun binderDied() {
             logV(TAG, "[binderDied]")
+            onBinderDied()
             mServiceListener?.onBinderDied()
             mProxy?.asBinder()?.unlinkToDeath(this, 0)
             mProxy?.let { mProxy = null }
@@ -87,6 +89,7 @@ abstract class BaseConnectManager<T : IInterface> {
             }
             val connected = mApplication.bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
             logV(TAG, "[bindService] connected result： $connected")
+            mServiceListener?.onBindServiceResult(connected)
             if (!connected) {
                 attemptToRebindService()
             }
@@ -98,6 +101,9 @@ abstract class BaseConnectManager<T : IInterface> {
 
     protected open fun attemptToRebindService() {
         logV(TAG, "[attemptToRebindService]")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (mChildThread.hasCallbacks(mBindServiceTask)) return
+        }
         mChildThread.postDelayed(mBindServiceTask, mRetryTimeMill)
     }
 
@@ -125,6 +131,7 @@ abstract class BaseConnectManager<T : IInterface> {
             it.asBinder().unlinkToDeath(mDeathRecipient, 0)
             mProxy = null
             mApplication.unbindService(mServiceConnection)
+            mServiceListener?.onUnbindService()
         }
     }
 
@@ -168,12 +175,11 @@ abstract class BaseConnectManager<T : IInterface> {
     }
 
 
-
     protected abstract fun getServicePkgName(): String
-
     protected abstract fun getServiceClassName(): String
-
     protected abstract fun asInterface(service: IBinder?): T
+    protected abstract fun onBindSuccess()
+    protected abstract fun onBinderDied()
     fun asBinder(): IBinder? {
         return null
     }

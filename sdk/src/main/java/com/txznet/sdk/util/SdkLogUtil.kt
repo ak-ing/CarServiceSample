@@ -14,7 +14,8 @@ import android.util.Log
  * @param tag  title
  * @param info description
  */
-fun logV(tag: String?, info: String) = SdkLogUtils.v(tag, info)
+fun logV(tag: String?, info: String) =
+    SdkLogUtils.showLogWithLineNum(tag, "[thread:" + Thread.currentThread().name + "] - ", info)
 
 /**
  * TAG
@@ -34,7 +35,7 @@ object SdkLogUtils {
         }
     }
 
-    private fun showLogWithLineNum(tag: String?, thread: String, content: String) {
+    fun showLogWithLineNum(tag: String?, thread: String, content: String) {
         if (!VERBOSE) {
             return
         }
