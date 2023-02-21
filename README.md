@@ -11,17 +11,18 @@
 
 - `SDK` 根据业务逻辑Service对外暴露的通信接口，其他模块通过它来完成IPC通信。
 
+****
 
-**在Binder中注册回调，请使用`RemoteCallbackList`**
+## 在Binder中注册回调，请使用`RemoteCallbackList`
 *参考：*
 [跨进程监听](https://www.jianshu.com/p/69e5782dd3c3)
 
-
+**
 服务端提供数据，并提供接口打包成SDK给第三方使用
 - 打包成`jar`
 - 打包成`aar`
 
-****
+**
 **对于Android11及以上版本，推荐使用`aar`**
 由于Android 11 中的软件包可见性，第三方需要在`manifest`中使用`<queries>`声明`service`组件。打包成`aar`可以保留SDK模块中的manifest文件，第三方无需接入。
 **
