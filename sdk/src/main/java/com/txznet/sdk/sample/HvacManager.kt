@@ -12,7 +12,7 @@ import com.txznet.sdk.util.logV
  * Created by Rick on 2023-02-03  17:10.
  * Description: 示例
  */
-class HvacManager : BaseConnectManager<HvacInterface>(), HvacInterface {
+class HvacManager : BaseConnectManager<HvacInterface>(), HvacInterface   {
     companion object {
         private const val TAG = SdkLogUtils.TAG_SDK + "HvacManager"
         private const val SERVICE_PACKAGE = "com.txznet.carservicesampel"
