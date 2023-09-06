@@ -30,7 +30,4 @@
 
 ![<queries>声明](https://user-images.githubusercontent.com/65901383/220333639-dca5eaba-4284-43d2-9474-8012da24cd03.png)
 
-**前台服务权限同样将保留**
-
-![1679410196701](https://user-images.githubusercontent.com/65901383/226644385-993e9e5c-3408-4d34-af5d-8dfa21a7128a.png) 
 
